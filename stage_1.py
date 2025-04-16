@@ -22,18 +22,19 @@ selected_features = get_dataset("Hothan/OlympiadBench", "OE_MM_maths_en_COMP", t
 
 def get_model():
 
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",  # hoặc "fp4"
-        bnb_4bit_compute_dtype=torch.float16,
-    )
+    # bnb_config = BitsAndBytesConfig(
+    #     load_in_4bit=True,
+    #     bnb_4bit_use_double_quant=True,
+    #     bnb_4bit_quant_type="nf4",  # hoặc "fp4"
+    #     bnb_4bit_compute_dtype=torch.float16,
+    # )
 
 
     tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
     model =  AutoModelForCausalLMWithValueHead.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B", torch_dtype = torch.float16,
-                                                               quantization_config=bnb_config,
-                                                                device_map="auto")
+                                                               #quantization_config=bnb_config,
+                                                                #device_map="auto"
+                                                                )
     tokenizer.pad_token = tokenizer.eos_token
     model.to('cuda')
 
@@ -104,7 +105,7 @@ if __name__ == "__main__":
 
             print(batch["response"])
 
-            
+
 
 
 
