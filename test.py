@@ -25,12 +25,12 @@ def get_model():
 def get_result(tokenizer, model, sample):
     
 
-    prompt = f"""You are an AI assistant. Please solve the following {subject} competition problem.
+    prompt = f"""You are an AI assistant. Please solve the following Math competition problem.
 
     Q:  
     {sample['question']}
 
-    Please provide a step-by-step solution. Put the final answer inside \\boxed{{}}.
+    Please provide a step-by-step solution. Please answer .
     """
 
 
