@@ -7,6 +7,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import PPOTrainer, PPOConfig
 from trl import AutoModelForCausalLMWithValueHead
 import tqdm
+from transformers import BitsAndBytesConfig
 
 
 
@@ -20,8 +21,19 @@ selected_features = get_dataset("Hothan/OlympiadBench", "OE_MM_maths_en_COMP", t
 
 
 def get_model():
+
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",  # hoặc "fp4"
+        bnb_4bit_compute_dtype=torch.float16,
+    )
+
+
     tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
-    model =  AutoModelForCausalLMWithValueHead.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B", torch_dtype = torch.float16)
+    model =  AutoModelForCausalLMWithValueHead.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B", torch_dtype = torch.float16,
+                                                               quantization_config=bnb_config,
+                                                                device_map="auto")
     tokenizer.pad_token = tokenizer.eos_token
     model.to('cuda')
 
@@ -33,6 +45,9 @@ def init_ppo(tokenizer, model, dataset):
     config = PPOConfig(
         model_name="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
        learning_rate=1.41e-5,
+       mini_batch_size = 1,
+        batch_size = 1, 
+        gradient_accumulation_steps=1,
     )
 
 
@@ -79,13 +94,20 @@ if __name__ == "__main__":
 
     epochs = 10
 
-    for epoch in tqdm(range(epochs), "epoch: "):
-        for batch in tqdm(ppo_trainer.dataloader): 
+    for epoch in tqdm.tqdm(range(epochs), desc="epoch:"):
+        for batch in tqdm.tqdm(ppo_trainer.dataloader, desc=f"batch (epoch {epoch})"):
             query_tensors = batch["input_ids"]
 
             response_tensors = ppo_trainer.generate(query_tensors, **generation_kwargs)
 
-            print(response_tensors)
+            batch["response"] = [tokenizer.decode(r.squeeze()) for r in response_tensors]
+
+            print(batch["response"])
+
+            
+
+
+
 
 
 
