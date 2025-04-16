@@ -7,7 +7,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import PPOTrainer, PPOConfig
 from trl import AutoModelForCausalLMWithValueHead
 import tqdm
-from transformers import BitsAndBytesConfig
+#from transformers import BitsAndBytesConfig
 
 
 
@@ -82,11 +82,12 @@ if __name__ == "__main__":
     dataset = selected_features.map(tokenize, batched=False)
     
     generation_kwargs = {
-    "min_length": -1,
-    "top_k": 0.0,
-    "top_p": 1.0,
+    "max_new_tokens": 15000,
+    "top_p": 0.95,
     "do_sample": True,
     "pad_token_id": tokenizer.eos_token_id,
+    "num_return_sequences" : 2
+ 
     }
 
         
@@ -97,11 +98,14 @@ if __name__ == "__main__":
 
     for epoch in tqdm.tqdm(range(epochs), desc="epoch:"):
         for batch in tqdm.tqdm(ppo_trainer.dataloader, desc=f"batch (epoch {epoch})"):
+            print("\n==============================================")
             query_tensors = batch["input_ids"]
 
             response_tensors = ppo_trainer.generate(query_tensors, **generation_kwargs)
 
             batch["response"] = [tokenizer.decode(r.squeeze()) for r in response_tensors]
+
+
 
             print(batch["response"])
 
