@@ -25,10 +25,12 @@ def get_model():
 def get_result(tokenizer, model, sample):
     
 
-    prompt = f"""Q:  
+    prompt = f"""You are an AI assistant. Please solve the following {subject} competition problem.
+
+    Q:  
     {sample['question']}
 
-    A: Let's think step by step. In the end, put the final answer inside \\boxed{{}}.
+    Please provide a step-by-step solution. Put the final answer inside \\boxed{{}}.
     """
 
 
@@ -42,7 +44,7 @@ def get_result(tokenizer, model, sample):
     temperature=0.6,
     top_p=0.95,
     do_sample=True,
-    num_return_sequences=1,
+    num_return_sequences=8,
     pad_token_id=tokenizer.eos_token_id
         )
     
